@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
@@ -40,6 +41,10 @@ public class GalleryImageView extends ScalingImageView {
 		}
 	};
 
+	private interface OnBitmapLoadedListener {
+		void onBitmapLoaded(Bitmap bitmap);
+	}
+
 	private ArrayList<String> imageList;
 	private int currentIndex;
 	private Bitmap previousBitmap;
@@ -53,6 +58,7 @@ public class GalleryImageView extends ScalingImageView {
 	private float step;
 	private float targetX;
 	private long last = 0;
+	private int maxImageSize = 1024;
 
 	public GalleryImageView(Context context) {
 		super(context);
@@ -75,6 +81,10 @@ public class GalleryImageView extends ScalingImageView {
 	public void setImages(ArrayList<String> list, int index) {
 		imageList = list;
 		setCurrentImage(index);
+	}
+
+	public void setMaxImageSize(int size) {
+		maxImageSize = Math.max(16, Math.min(1280, size));
 	}
 
 	@Override
@@ -161,8 +171,8 @@ public class GalleryImageView extends ScalingImageView {
 		options.inSampleSize = calculateInSampleSize(
 				options.outWidth,
 				options.outHeight,
-				1024,
-				1024);
+				maxImageSize,
+				maxImageSize);
 		options.inJustDecodeBounds = false;
 		return BitmapFactory.decodeFile(file, options);
 	}
@@ -281,14 +291,44 @@ public class GalleryImageView extends ScalingImageView {
 			--currentIndex;
 			nextBitmap = currentBitmap;
 			currentBitmap = previousBitmap;
-			previousBitmap = decodeFileAt(currentIndex - 1);
+			previousBitmap = null;
+			decodeFileAtAsync(currentIndex - 1, new OnBitmapLoadedListener() {
+				@Override
+				public void onBitmapLoaded(Bitmap bitmap) {
+					previousBitmap = bitmap;
+					updateRects();
+				}
+			});
 		} else {
 			++currentIndex;
 			previousBitmap = currentBitmap;
 			currentBitmap = nextBitmap;
-			nextBitmap = decodeFileAt(currentIndex + 1);
+			nextBitmap = null;
+			decodeFileAtAsync(currentIndex + 1, new OnBitmapLoadedListener() {
+				@Override
+				public void onBitmapLoaded(Bitmap bitmap) {
+					nextBitmap = bitmap;
+					updateRects();
+				}
+			});
 		}
 		updateRects();
 		setImageBitmap(currentBitmap);
+	}
+
+	private void decodeFileAtAsync(
+			final int index,
+			final OnBitmapLoadedListener listener) {
+		new AsyncTask<Void, Void, Bitmap>() {
+			@Override
+			public Bitmap doInBackground(Void... nothings) {
+				return decodeFileAt(index);
+			}
+
+			@Override
+			protected void onPostExecute(Bitmap bitmap) {
+				listener.onBitmapLoaded(bitmap);
+			}
+		}.execute();
 	}
 }
