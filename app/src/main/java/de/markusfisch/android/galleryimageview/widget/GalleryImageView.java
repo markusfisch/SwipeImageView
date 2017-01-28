@@ -1,5 +1,6 @@
 package de.markusfisch.android.galleryimageview.widget;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -8,6 +9,7 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
@@ -24,12 +26,12 @@ public class GalleryImageView extends ScalingImageView {
 			long now = System.currentTimeMillis();
 			double factor = (now - last) / 16.0;
 			last = now;
-			dx += step * factor;
+			deltaX += stepX * factor;
 
-			if (Math.abs(targetX - dx) < Math.abs(step)) {
-				dx = targetX;
-				if (targetX != 0) {
-					shiftBitmaps(targetX > 0);
+			if (Math.abs(finalX - deltaX) < Math.abs(stepX)) {
+				deltaX = finalX;
+				if (finalX != 0) {
+					shiftBitmaps(finalX > 0);
 				}
 				last = 0;
 				swiping = false;
@@ -47,18 +49,18 @@ public class GalleryImageView extends ScalingImageView {
 
 	private ArrayList<String> imageList;
 	private int currentIndex;
+	private int maxImageSize = 320;
 	private Bitmap previousBitmap;
 	private Bitmap currentBitmap;
 	private Bitmap nextBitmap;
 	private boolean swiping = false;
-	private float threshold;
-	private float originX;
-	private float dx;
-	private float speed;
-	private float step;
-	private float targetX;
+	private float sensivityThreshold;
+	private float initialX;
+	private float deltaX;
+	private float stepX;
+	private float finalX;
+	private long initialTime;
 	private long last = 0;
-	private int maxImageSize = 1024;
 
 	public GalleryImageView(Context context) {
 		super(context);
@@ -75,6 +77,16 @@ public class GalleryImageView extends ScalingImageView {
 			AttributeSet attrs,
 			int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
+		init(context);
+	}
+
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+	public GalleryImageView(
+			Context context,
+			AttributeSet attrs,
+			int defStyleAttr,
+			int defStyleRes) {
+		super(context, attrs, defStyleAttr, defStyleRes);
 		init(context);
 	}
 
@@ -100,7 +112,7 @@ public class GalleryImageView extends ScalingImageView {
 					previousBitmapRectF,
 					bounds,
 					Matrix.ScaleToFit.CENTER);
-			matrix.postTranslate(-bounds.width() + dx, 0);
+			matrix.postTranslate(-bounds.width() + deltaX, 0);
 			canvas.drawBitmap(previousBitmap, matrix, null);
 		}
 		if (currentBitmap != null) {
@@ -108,7 +120,7 @@ public class GalleryImageView extends ScalingImageView {
 					currentBitmapRectF,
 					bounds,
 					Matrix.ScaleToFit.CENTER);
-			matrix.postTranslate(dx, 0);
+			matrix.postTranslate(deltaX, 0);
 			canvas.drawBitmap(currentBitmap, matrix, null);
 		}
 		if (nextBitmap != null) {
@@ -116,7 +128,7 @@ public class GalleryImageView extends ScalingImageView {
 					nextBitmapRectF,
 					bounds,
 					Matrix.ScaleToFit.CENTER);
-			matrix.postTranslate(bounds.width() + dx, 0);
+			matrix.postTranslate(bounds.width() + deltaX, 0);
 			canvas.drawBitmap(nextBitmap, matrix, null);
 		}
 	}
@@ -141,22 +153,22 @@ public class GalleryImageView extends ScalingImageView {
 					return true;
 				}
 				// ignore all events if there are additional pointers
-				originX = -1;
+				initialX = -1;
 				break;
 			case MotionEvent.ACTION_MOVE:
 				if (swiping) {
 					return swipe(event);
-				} else if (originX > -1 &&
+				} else if (initialX > -1 &&
 						pointerCount == 1 &&
-						!isScaled() &&
-						Math.abs(getSwipeDistance(event)) > threshold) {
+						inBounds() &&
+						Math.abs(getSwipeDistance(event)) > sensivityThreshold) {
 					return startSwipe(event);
 				}
 				break;
 			case MotionEvent.ACTION_CANCEL:
 			case MotionEvent.ACTION_UP:
 				if (swiping) {
-					return stopSwipe();
+					return stopSwipe(event);
 				}
 				break;
 		}
@@ -199,8 +211,7 @@ public class GalleryImageView extends ScalingImageView {
 
 	private void init(Context context) {
 		float dp = context.getResources().getDisplayMetrics().density;
-		threshold = 16f * dp;
-		speed = 10f * dp;
+		sensivityThreshold = 16f * dp;
 	}
 
 	private void setCurrentImage(int index) {
@@ -240,11 +251,12 @@ public class GalleryImageView extends ScalingImageView {
 	}
 
 	private void initSwipe(MotionEvent event) {
-		originX = event.getX();
+		initialX = event.getX();
+		initialTime = event.getEventTime();
 	}
 
 	private float getSwipeDistance(MotionEvent event) {
-		return event.getX() - originX;
+		return event.getX() - initialX;
 	}
 
 	private boolean startSwipe(MotionEvent event) {
@@ -253,32 +265,36 @@ public class GalleryImageView extends ScalingImageView {
 	}
 
 	private boolean swipe(MotionEvent event) {
-		dx = getSwipeDistance(event);
-		if ((dx > 0 && previousBitmap == null) ||
-				(dx < 0 && nextBitmap == null)) {
-			dx = 0;
+		deltaX = getSwipeDistance(event);
+		if ((deltaX > 0 && previousBitmap == null) ||
+				(deltaX < 0 && nextBitmap == null)) {
+			deltaX = 0;
 		}
 		invalidate();
 		return true;
 	}
 
-	private boolean stopSwipe() {
+	private boolean stopSwipe(MotionEvent event) {
 		float width = getBounds().width();
-		if (dx == 0) {
+		float speed = Math.max(
+				width * .04f,
+				Math.abs(event.getX() - initialX) *
+						16f / (event.getEventTime() - initialTime));
+		if (deltaX == 0) {
 			swiping = false;
 			invalidate();
 			return true;
-		} else if (Math.abs(dx) > width * .5f) {
-			if (dx > 0) {
-				targetX = width;
-				step = speed;
+		} else if (Math.abs(deltaX) > width * .2f) {
+			if (deltaX > 0) {
+				finalX = width;
+				stepX = speed;
 			} else {
-				targetX = -width;
-				step = -speed;
+				finalX = -width;
+				stepX = -speed;
 			}
 		} else {
-			targetX = 0;
-			step = dx > 0 ? -speed : speed;
+			finalX = 0;
+			stepX = deltaX > 0 ? -speed : speed;
 		}
 
 		last = System.currentTimeMillis() - 16;
