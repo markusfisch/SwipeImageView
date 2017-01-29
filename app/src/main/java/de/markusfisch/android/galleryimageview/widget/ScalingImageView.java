@@ -24,7 +24,7 @@ public class ScalingImageView extends ImageView {
 	private final RectF bounds = new RectF();
 
 	private long doubleTapTimeout;
-	private float doubleTapSensivity;
+	private float doubleTapRadius;
 	private long lastUp;
 	private float minWidth = 0f;
 	private float rotation = 0f;
@@ -99,7 +99,7 @@ public class ScalingImageView extends ImageView {
 				return true;
 			case MotionEvent.ACTION_DOWN:
 				if (event.getEventTime() - lastUp <= doubleTapTimeout &&
-						distanceFromInitial(event) < doubleTapSensivity) {
+						distanceFromInitial(event) < doubleTapRadius) {
 					magnify(event.getX(), event.getY());
 				}
 				initTransform(event, pointerCount, -1);
@@ -265,7 +265,7 @@ public class ScalingImageView extends ImageView {
 	private void init(Context context) {
 		super.setScaleType(ImageView.ScaleType.MATRIX);
 		float dp = context.getResources().getDisplayMetrics().density;
-		doubleTapSensivity = 16f * dp;
+		doubleTapRadius = 16f * dp;
 		doubleTapTimeout = ViewConfiguration.get(context)
 				.getDoubleTapTimeout();
 	}
@@ -332,14 +332,6 @@ public class ScalingImageView extends ImageView {
 		transformMatrix.set(initialMatrix);
 
 		if (pointerCount == 1) {
-			/*int pointerIndex = event.getActionIndex();
-			int id = event.getPointerId(pointerIndex);
-			PointF point = initialPoint.get(id);
-			if (point != null) {
-				transformMatrix.postTranslate(
-						event.getX(pointerIndex) - point.x,
-						event.getY(pointerIndex) - point.y);
-			}*/
 			PointF point = getPointerDelta(event);
 			if (point != null) {
 				transformMatrix.postTranslate(point.x, point.y);
@@ -413,21 +405,9 @@ public class ScalingImageView extends ImageView {
 		return false;
 	}
 
-	/*private double distanceFromInitial(MotionEvent event) {
-		int pointerIndex = event.getActionIndex();
-		int id = event.getPointerId(pointerIndex);
-		PointF point = initialPoint.get(id);
-		if (point == null) {
-			return 0;
-		}
-		float dx = event.getX(pointerIndex) - point.x;
-		float dy = event.getY(pointerIndex) - point.y;
-		return Math.sqrt(dx * dx + dy * dy);
-	}*/
-
 	private double distanceFromInitial(MotionEvent event) {
 		PointF point = getPointerDelta(event);
-		return point == null ? 0 :
+		return point == null ? 0xffff :
 				Math.sqrt(point.x * point.x + point.y * point.y);
 	}
 
@@ -442,7 +422,7 @@ public class ScalingImageView extends ImageView {
 
 	private void magnify(float x, float y) {
 		if (inBounds()) {
-			float scale = 3f;
+			float scale = 4f;
 			transformMatrix.postScale(scale, scale, x, y);
 		} else {
 			setMinWidth(bounds, transformMatrix);
