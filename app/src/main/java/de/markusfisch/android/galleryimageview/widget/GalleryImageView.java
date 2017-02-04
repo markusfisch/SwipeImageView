@@ -26,15 +26,11 @@ public class GalleryImageView extends ScalingImageView {
 			long now = System.currentTimeMillis();
 			double factor = (now - last) / 16.0;
 			last = now;
+
 			deltaX += stepX * factor;
 
-			if (Math.abs(finalX - deltaX) < Math.abs(stepX)) {
-				deltaX = finalX;
-				if (finalX != 0) {
-					shiftBitmaps(finalX > 0);
-				}
-				last = 0;
-				swiping = false;
+			if (stepX > 0 ? deltaX > finalX : deltaX < finalX) {
+				stopSwipe();
 			} else {
 				post(animationRunnable);
 			}
@@ -43,24 +39,21 @@ public class GalleryImageView extends ScalingImageView {
 		}
 	};
 
-	private interface OnBitmapLoadedListener {
-		void onBitmapLoaded(Bitmap bitmap);
-	}
-
 	private ArrayList<String> imageList;
 	private int currentIndex;
-	private int maxImageSize = 320;
+	private int previewSize = 32;//320;
+	private int maxSize = 1024;
 	private Bitmap previousBitmap;
 	private Bitmap currentBitmap;
 	private Bitmap nextBitmap;
 	private boolean swiping = false;
-	private float sensivityThreshold;
+	private float swipeThreshold;
 	private float initialX;
 	private float deltaX;
 	private float stepX;
 	private float finalX;
 	private long initialTime;
-	private long last = 0;
+	private long last;
 
 	public GalleryImageView(Context context) {
 		super(context);
@@ -95,8 +88,12 @@ public class GalleryImageView extends ScalingImageView {
 		setCurrentImage(index);
 	}
 
+	public void setPreviewImageSize(int size) {
+		previewSize = Math.max(2, Math.min(1024, size));
+	}
+
 	public void setMaxImageSize(int size) {
-		maxImageSize = Math.max(16, Math.min(1280, size));
+		maxSize = Math.max(2, Math.min(1024, size));
 	}
 
 	@Override
@@ -135,40 +132,44 @@ public class GalleryImageView extends ScalingImageView {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		// ignore all input while animating
+		// ignore and swallow everything while animating
 		if (last > 0) {
 			return true;
 		}
 
-		int pointerCount = event.getPointerCount();
-
 		switch (event.getActionMasked()) {
 			case MotionEvent.ACTION_DOWN:
-				initSwipe(event);
+				initSwipe(event, -1);
 				break;
 			case MotionEvent.ACTION_POINTER_UP:
+				initSwipe(event, event.getActionIndex());
+				break;
 			case MotionEvent.ACTION_POINTER_DOWN:
 				// ignore additional fingers while swiping
 				if (swiping) {
 					return true;
 				}
-				// ignore all events if there are additional pointers
-				initialX = -1;
 				break;
 			case MotionEvent.ACTION_MOVE:
+				int pointerCount = event.getPointerCount();
 				if (swiping) {
-					return swipe(event);
+					swipe(event);
+					return true;
 				} else if (initialX > -1 &&
 						pointerCount == 1 &&
 						inBounds() &&
-						Math.abs(getSwipeDistance(event)) > sensivityThreshold) {
-					return startSwipe(event);
+						Math.abs(getSwipeDistance(event)) > swipeThreshold) {
+					startSwipe();
+					return true;
+				} else if (pointerCount == 1 && inBounds()) {
+					return true;
 				}
 				break;
 			case MotionEvent.ACTION_CANCEL:
 			case MotionEvent.ACTION_UP:
 				if (swiping) {
-					return stopSwipe(event);
+					completeSwipe(event);
+					return true;
 				}
 				break;
 		}
@@ -176,15 +177,15 @@ public class GalleryImageView extends ScalingImageView {
 		return super.onTouchEvent(event);
 	}
 
-	protected Bitmap decodeFile(String file) {
+	protected Bitmap decodeFile(String file, int size) {
 		BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inJustDecodeBounds = true;
 		BitmapFactory.decodeFile(file, options);
 		options.inSampleSize = calculateInSampleSize(
 				options.outWidth,
 				options.outHeight,
-				maxImageSize,
-				maxImageSize);
+				size,
+				size);
 		options.inJustDecodeBounds = false;
 		return BitmapFactory.decodeFile(file, options);
 	}
@@ -211,21 +212,52 @@ public class GalleryImageView extends ScalingImageView {
 
 	private void init(Context context) {
 		float dp = context.getResources().getDisplayMetrics().density;
-		sensivityThreshold = 16f * dp;
+		swipeThreshold = 16f * dp;
 	}
 
 	private void setCurrentImage(int index) {
-		if (imageList == null || imageList.size() < 1) {
+		int size;
+		if (imageList == null || (size = imageList.size()) < 1) {
 			return;
 		}
+		index = Math.abs(index) % size;
 
-		previousBitmap = decodeFileAt(index - 1);
-		currentBitmap = decodeFileAt(index);
-		nextBitmap = decodeFileAt(index + 1);
+		previousBitmap = decodeFileAt(index - 1, previewSize);
+		currentBitmap = decodeFileAt(index, previewSize);
+		nextBitmap = decodeFileAt(index + 1, previewSize);
 		updateRects();
 
 		currentIndex = index;
+		setPreviewAndLoadAsync();
+	}
+
+	private Bitmap decodeFileAt(int index, int size) {
+		return index > -1 && index < imageList.size() ?
+				decodeFile(imageList.get(index), size) :
+				null;
+	}
+
+	private void setPreviewAndLoadAsync() {
 		setImageBitmap(currentBitmap);
+		if (currentBitmap != null &&
+				(currentBitmap.getWidth() >= maxSize ||
+						currentBitmap.getHeight() >= maxSize)) {
+			return;
+		}
+		final int index = currentIndex;
+		decodeFileAtAsync(currentIndex, maxSize, new OnBitmapLoadedListener() {
+			@Override
+			public void onBitmapLoaded(Bitmap bitmap) {
+				if (currentIndex == index) {
+					currentBitmap = bitmap;
+					updateRects();
+					setImageBitmap(bitmap);
+				} else if (currentBitmap == null) {
+// how can currentBitmap be null?
+					setPreviewAndLoadAsync();
+				}
+			}
+		});
 	}
 
 	private void updateRects() {
@@ -240,51 +272,52 @@ public class GalleryImageView extends ScalingImageView {
 		}
 	}
 
-	private Bitmap decodeFileAt(int index) {
-		return index > -1 && index < imageList.size() ?
-				decodeFile(imageList.get(index)) :
-				null;
-	}
-
 	private static Rect getBitmapRect(Bitmap bitmap) {
 		return new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
 	}
 
-	private void initSwipe(MotionEvent event) {
-		initialX = event.getX();
-		initialTime = event.getEventTime();
+	private void initSwipe(MotionEvent event, int ignore) {
+		if (ignore < 0) {
+			initialTime = event.getEventTime();
+		}
+		for (int i = 0, l = event.getPointerCount(); i < l; ++i) {
+			if (i != ignore) {
+				initialX = event.getX(i);
+				break;
+			}
+		}
 	}
 
 	private float getSwipeDistance(MotionEvent event) {
 		return event.getX() - initialX;
 	}
 
-	private boolean startSwipe(MotionEvent event) {
+	private void startSwipe() {
 		swiping = true;
-		return true;
 	}
 
-	private boolean swipe(MotionEvent event) {
+	private void swipe(MotionEvent event) {
 		deltaX = getSwipeDistance(event);
-		if ((deltaX > 0 && previousBitmap == null) ||
-				(deltaX < 0 && nextBitmap == null)) {
+		if (deltaX > 0 ? currentIndex == 0 :
+				currentIndex == imageList.size() - 1) {
 			deltaX = 0;
 		}
 		invalidate();
-		return true;
 	}
 
-	private boolean stopSwipe(MotionEvent event) {
-		float width = getBounds().width();
-		float speed = Math.max(
-				width * .04f,
-				Math.abs(event.getX() - initialX) *
-						16f / (event.getEventTime() - initialTime));
+	private void completeSwipe(MotionEvent event) {
+		final float swipeDistance = Math.abs(event.getX() - initialX);
+		final float swipeTime = event.getEventTime() - initialTime;
+		final float width = getBounds().width();
+		final float speed = Math.max(
+				width * .06f,
+				swipeDistance * 16f / swipeTime);
+
 		if (deltaX == 0) {
 			swiping = false;
 			invalidate();
-			return true;
-		} else if (Math.abs(deltaX) > width * .2f) {
+			return;
+		} else if (swipeDistance > width * .5f || swipeTime < 300) {
 			if (deltaX > 0) {
 				finalX = width;
 				stepX = speed;
@@ -298,8 +331,17 @@ public class GalleryImageView extends ScalingImageView {
 		}
 
 		last = System.currentTimeMillis() - 16;
+		removeCallbacks(animationRunnable);
 		post(animationRunnable);
-		return true;
+	}
+
+	private void stopSwipe() {
+		deltaX = finalX;
+		if (finalX != 0) {
+			shiftBitmaps(finalX > 0);
+		}
+		last = 0;
+		swiping = false;
 	}
 
 	private void shiftBitmaps(boolean backwards) {
@@ -308,11 +350,15 @@ public class GalleryImageView extends ScalingImageView {
 			nextBitmap = currentBitmap;
 			currentBitmap = previousBitmap;
 			previousBitmap = null;
-			decodeFileAtAsync(currentIndex - 1, new OnBitmapLoadedListener() {
+			final int previousIndex = currentIndex - 1;
+			decodeFileAtAsync(previousIndex, previewSize,
+					new OnBitmapLoadedListener() {
 				@Override
 				public void onBitmapLoaded(Bitmap bitmap) {
-					previousBitmap = bitmap;
-					updateRects();
+					if (previousIndex == currentIndex - 1) {
+						previousBitmap = bitmap;
+						updateRects();
+					}
 				}
 			});
 		} else {
@@ -320,31 +366,56 @@ public class GalleryImageView extends ScalingImageView {
 			previousBitmap = currentBitmap;
 			currentBitmap = nextBitmap;
 			nextBitmap = null;
-			decodeFileAtAsync(currentIndex + 1, new OnBitmapLoadedListener() {
+			final int nextIndex = currentIndex + 1;
+			decodeFileAtAsync(nextIndex, previewSize,
+					new OnBitmapLoadedListener() {
 				@Override
 				public void onBitmapLoaded(Bitmap bitmap) {
-					nextBitmap = bitmap;
-					updateRects();
+					if (nextIndex == currentIndex + 1) {
+						nextBitmap = bitmap;
+						updateRects();
+					}
 				}
 			});
 		}
 		updateRects();
-		setImageBitmap(currentBitmap);
+		setPreviewAndLoadAsync();
 	}
 
 	private void decodeFileAtAsync(
 			final int index,
+			//final int deviation,
+			final int size,
 			final OnBitmapLoadedListener listener) {
-		new AsyncTask<Void, Void, Bitmap>() {
+		AsyncTask<Void, Void, Bitmap> task =
+				new AsyncTask<Void, Void, Bitmap>() {
 			@Override
 			public Bitmap doInBackground(Void... nothings) {
-				return decodeFileAt(index);
+				return decodeFileAt(index, size);
 			}
 
 			@Override
 			protected void onPostExecute(Bitmap bitmap) {
-				listener.onBitmapLoaded(bitmap);
+				//if (currentIndex + deviation == index) {
+				if (bitmap != null) {
+					listener.onBitmapLoaded(bitmap);
+				}
 			}
-		}.execute();
+		};
+
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			// from DONUT until HONEYCOMB AsyncTask had a pool of threads
+			// allowing multiple tasks to operate in parallel
+			task.execute();
+		} else {
+			// starting with HONEYCOMB, tasks are executed on a single
+			// thread (what would mean this task would block all other
+			// AsyncTask's) unless executeOnExecutor() is used
+			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+		}
+	}
+
+	private interface OnBitmapLoadedListener {
+		void onBitmapLoaded(Bitmap bitmap);
 	}
 }

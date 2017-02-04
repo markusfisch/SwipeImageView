@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 	private static final int REQUEST_PERMISSIONS = 1;
 
-	private GalleryImageView galleryView;
+	private GalleryImageView imageView;
 
 	@Override
 	public void onRequestPermissionsResult(
@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
 		super.onCreate(state);
 		setContentView(R.layout.activity_main);
 
-		galleryView = (GalleryImageView) findViewById(R.id.gallery);
+		imageView = (GalleryImageView) findViewById(R.id.gallery);
 
 		if (checkPermissions()) {
 			setGallery();
@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void setGallery() {
-		galleryView.setImages(getImagesFromGallery(), 0);
+		imageView.setImages(getImagesFromGallery(), 0);
 	}
 
 	private ArrayList<String> getImagesFromGallery() {
