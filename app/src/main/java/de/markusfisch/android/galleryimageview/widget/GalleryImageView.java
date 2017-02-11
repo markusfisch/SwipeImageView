@@ -2,6 +2,7 @@ package de.markusfisch.android.galleryimageview.widget;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -39,10 +40,13 @@ public class GalleryImageView extends ScalingImageView {
 		}
 	};
 
-	private ArrayList<String> imageList;
+	private Cursor cursor;
+	private int columnIndex;
+	private int imageCount;
 	private int currentIndex;
 	private int previewSize = 32;//320;
 	private int maxSize = 1024;
+	private int pointerId;
 	private Bitmap previousBitmap;
 	private Bitmap currentBitmap;
 	private Bitmap nextBitmap;
@@ -83,8 +87,17 @@ public class GalleryImageView extends ScalingImageView {
 		init(context);
 	}
 
-	public void setImages(ArrayList<String> list, int index) {
-		imageList = list;
+	public void setImages(Cursor cursor, String columnName) {
+		setImages(cursor, columnName, 0);
+	}
+
+	public void setImages(Cursor cursor, String columnName, int index) {
+		if (cursor == null ||
+				(columnIndex = cursor.getColumnIndex(columnName)) < 0 ||
+				(imageCount = cursor.getCount()) < 1) {
+			return;
+		}
+		this.cursor = cursor;
 		setCurrentImage(index);
 	}
 
@@ -132,7 +145,7 @@ public class GalleryImageView extends ScalingImageView {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		// ignore and swallow everything while animating
+		// ignore all input while animating
 		if (last > 0) {
 			return true;
 		}
@@ -142,10 +155,12 @@ public class GalleryImageView extends ScalingImageView {
 				initSwipe(event, -1);
 				break;
 			case MotionEvent.ACTION_POINTER_UP:
-				initSwipe(event, event.getActionIndex());
+				if (swiping) {
+					initSwipe(event, event.getActionIndex());
+					return true;
+				}
 				break;
 			case MotionEvent.ACTION_POINTER_DOWN:
-				// ignore additional fingers while swiping
 				if (swiping) {
 					return true;
 				}
@@ -162,6 +177,9 @@ public class GalleryImageView extends ScalingImageView {
 					startSwipe();
 					return true;
 				} else if (pointerCount == 1 && inBounds()) {
+					// keep ScalingImageView from invoking transform()
+					// for an irrelevant event; a single pointer can't
+					// scale nor move the image when in bounds
 					return true;
 				}
 				break;
@@ -174,6 +192,7 @@ public class GalleryImageView extends ScalingImageView {
 				break;
 		}
 
+		// forward all other events to ScalingImageView
 		return super.onTouchEvent(event);
 	}
 
@@ -216,11 +235,7 @@ public class GalleryImageView extends ScalingImageView {
 	}
 
 	private void setCurrentImage(int index) {
-		int size;
-		if (imageList == null || (size = imageList.size()) < 1) {
-			return;
-		}
-		index = Math.abs(index) % size;
+		index = Math.abs(index) % imageCount;
 
 		previousBitmap = decodeFileAt(index - 1, previewSize);
 		currentBitmap = decodeFileAt(index, previewSize);
@@ -232,8 +247,14 @@ public class GalleryImageView extends ScalingImageView {
 	}
 
 	private Bitmap decodeFileAt(int index, int size) {
-		return index > -1 && index < imageList.size() ?
-				decodeFile(imageList.get(index), size) :
+		return index > -1 && index < imageCount ?
+				decodeFile(getImagePathAt(index), size) :
+				null;
+	}
+
+	private String getImagePathAt(int index) {
+		return cursor.moveToPosition(index) ?
+				cursor.getString(columnIndex) :
 				null;
 	}
 
@@ -282,14 +303,23 @@ public class GalleryImageView extends ScalingImageView {
 		}
 		for (int i = 0, l = event.getPointerCount(); i < l; ++i) {
 			if (i != ignore) {
+				pointerId = event.getPointerId(i);
 				initialX = event.getX(i);
+				if (ignore > -1) {
+					initialX -= deltaX;
+				}
 				break;
 			}
 		}
 	}
 
 	private float getSwipeDistance(MotionEvent event) {
-		return event.getX() - initialX;
+		for (int i = 0, l = event.getPointerCount(); i < l; ++i) {
+			if (event.getPointerId(i) == pointerId) {
+				return event.getX(i) - initialX;
+			}
+		}
+		return 0;
 	}
 
 	private void startSwipe() {
@@ -298,8 +328,7 @@ public class GalleryImageView extends ScalingImageView {
 
 	private void swipe(MotionEvent event) {
 		deltaX = getSwipeDistance(event);
-		if (deltaX > 0 ? currentIndex == 0 :
-				currentIndex == imageList.size() - 1) {
+		if (deltaX > 0 ? currentIndex == 0 : currentIndex == imageCount - 1) {
 			deltaX = 0;
 		}
 		invalidate();

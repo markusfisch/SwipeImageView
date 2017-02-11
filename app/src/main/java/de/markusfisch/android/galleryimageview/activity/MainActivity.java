@@ -19,6 +19,7 @@ public class MainActivity extends AppCompatActivity {
 	private static final int REQUEST_PERMISSIONS = 1;
 
 	private GalleryImageView imageView;
+	private Cursor cursor;
 
 	@Override
 	public void onRequestPermissionsResult(
@@ -48,6 +49,12 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		closeCursor();
+	}
+
 	private boolean checkPermissions() {
 		String permission = Manifest.permission.READ_EXTERNAL_STORAGE;
 
@@ -65,28 +72,25 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void setGallery() {
-		imageView.setImages(getImagesFromGallery(), 0);
-	}
-
-	private ArrayList<String> getImagesFromGallery() {
-		ArrayList<String> files = new ArrayList<>();
-		Cursor cursor = getContentResolver().query(
+		cursor = getContentResolver().query(
 			Images.Media.EXTERNAL_CONTENT_URI,
 			null,
 			null,
 			null,
 			null);
 		if (cursor == null) {
-			return files;
+			return;
 		} else if (!cursor.moveToFirst()) {
+			closeCursor();
+			return;
+		}
+		imageView.setImages(cursor, Images.Media.DATA);
+	}
+
+	private void closeCursor() {
+		if (cursor != null) {
 			cursor.close();
-			return files;
+			cursor = null;
 		}
-		for (int i = Math.min(24, cursor.getCount()); i-- > 0; ) {
-			files.add(cursor.getString(
-					cursor.getColumnIndex(Images.Media.DATA)));
-			cursor.moveToNext();
-		}
-		return files;
 	}
 }
