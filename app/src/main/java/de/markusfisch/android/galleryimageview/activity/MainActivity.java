@@ -3,17 +3,15 @@ package de.markusfisch.android.galleryimageview.activity;
 import de.markusfisch.android.galleryimageview.widget.GalleryImageView;
 import de.markusfisch.android.galleryimageview.R;
 
-import android.Manifest;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore.Images;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 	private static final int REQUEST_PERMISSIONS = 1;
@@ -56,7 +54,11 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private boolean checkPermissions() {
-		String permission = Manifest.permission.READ_EXTERNAL_STORAGE;
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+			return true;
+		}
+
+		String permission = android.Manifest.permission.READ_EXTERNAL_STORAGE;
 
 		if (ContextCompat.checkSelfPermission(this, permission) ==
 				PackageManager.PERMISSION_GRANTED) {
@@ -73,11 +75,11 @@ public class MainActivity extends AppCompatActivity {
 
 	private void setGallery() {
 		cursor = getContentResolver().query(
-			Images.Media.EXTERNAL_CONTENT_URI,
-			null,
-			null,
-			null,
-			null);
+				Images.Media.EXTERNAL_CONTENT_URI,
+				null,
+				null,
+				null,
+				null);
 		if (cursor == null) {
 			return;
 		} else if (!cursor.moveToFirst()) {

@@ -3,6 +3,7 @@ package de.markusfisch.android.galleryimageview.widget;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -13,8 +14,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-
-import java.util.ArrayList;
 
 public class GalleryImageView extends ScalingImageView {
 	private final Matrix matrix = new Matrix();
@@ -85,6 +84,15 @@ public class GalleryImageView extends ScalingImageView {
 			int defStyleRes) {
 		super(context, attrs, defStyleAttr, defStyleRes);
 		init(context);
+	}
+
+	public void setImages(String paths[], int index) {
+		String columnName = "path";
+		MatrixCursor cursor = new MatrixCursor(new String[]{columnName});
+		for (String path : paths) {
+			cursor.addRow(new Object[]{path});
+		}
+		setImages(cursor, columnName, index);
 	}
 
 	public void setImages(Cursor cursor, String columnName) {
@@ -328,7 +336,9 @@ public class GalleryImageView extends ScalingImageView {
 
 	private void swipe(MotionEvent event) {
 		deltaX = getSwipeDistance(event);
-		if (deltaX > 0 ? currentIndex == 0 : currentIndex == imageCount - 1) {
+		if (deltaX > 0 ?
+				currentIndex == 0 :
+				currentIndex == imageCount - 1) {
 			deltaX = 0;
 		}
 		invalidate();
