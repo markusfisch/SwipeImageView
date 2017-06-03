@@ -1,4 +1,4 @@
-PACKAGE = de.markusfisch.android.galleryimageview
+PACKAGE = de.markusfisch.android.galleryimageviewdemo
 APK = app/build/outputs/apk/app-debug.apk
 
 all: debug install start
@@ -14,6 +14,9 @@ lint:
 
 findbugs:
 	./gradlew findBugs
+
+infer: clean
+	infer -- ./gradlew assembleDebug
 
 install:
 	adb $(TARGET) install -r $(APK)

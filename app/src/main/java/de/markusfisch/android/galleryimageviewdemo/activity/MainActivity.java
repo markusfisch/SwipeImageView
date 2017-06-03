@@ -1,7 +1,8 @@
-package de.markusfisch.android.galleryimageview.activity;
+package de.markusfisch.android.galleryimageviewdemo.activity;
 
 import de.markusfisch.android.galleryimageview.widget.GalleryImageView;
-import de.markusfisch.android.galleryimageview.R;
+
+import de.markusfisch.android.galleryimageviewdemo.R;
 
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -14,25 +15,34 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
-	private static final int REQUEST_PERMISSIONS = 1;
+	private static final int REQUEST_READ_PERMISSION = 1;
+	private static final String CURRENT_INDEX = "current_index";
 
 	private GalleryImageView imageView;
 	private Cursor cursor;
+	private int currentIndex;
 
 	@Override
 	public void onRequestPermissionsResult(
 			int requestCode,
 			@NonNull String permissions[],
 			@NonNull int grantResults[]) {
-		if (requestCode != REQUEST_PERMISSIONS || grantResults.length < 1) {
+		if (requestCode != REQUEST_READ_PERMISSION ||
+				grantResults.length < 1) {
 			return;
 		}
 
 		if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-			setGallery();
+			setGallery(currentIndex);
 		} else {
 			finish();
 		}
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		outState.putInt(CURRENT_INDEX, imageView.getCurrentIndex());
+		super.onSaveInstanceState(outState);
 	}
 
 	@Override
@@ -41,9 +51,10 @@ public class MainActivity extends AppCompatActivity {
 		setContentView(R.layout.activity_main);
 
 		imageView = (GalleryImageView) findViewById(R.id.gallery);
+		currentIndex = state != null ? state.getInt(CURRENT_INDEX) : 0;
 
-		if (checkPermissions()) {
-			setGallery();
+		if (requestReadPermission()) {
+			setGallery(currentIndex);
 		}
 	}
 
@@ -53,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 		closeCursor();
 	}
 
-	private boolean checkPermissions() {
+	private boolean requestReadPermission() {
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
 			return true;
 		}
@@ -68,12 +79,12 @@ public class MainActivity extends AppCompatActivity {
 		ActivityCompat.requestPermissions(
 				this,
 				new String[]{permission},
-				REQUEST_PERMISSIONS);
+				REQUEST_READ_PERMISSION);
 
 		return false;
 	}
 
-	private void setGallery() {
+	private void setGallery(int index) {
 		cursor = getContentResolver().query(
 				Images.Media.EXTERNAL_CONTENT_URI,
 				null,
@@ -86,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
 			closeCursor();
 			return;
 		}
-		imageView.setImages(cursor, Images.Media.DATA);
+		imageView.setImages(cursor, Images.Media.DATA, index);
 	}
 
 	private void closeCursor() {

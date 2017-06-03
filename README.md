@@ -3,15 +3,38 @@ GalleryImageView
 
 A swipe/zoom/pinch gallery view.
 
+How to include
+--------------
+
+### Gradle
+
+Add the JitPack repository in your root build.gradle at the end of
+repositories:
+
+	allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+
+Then add the dependency in your app/build.gradle:
+
+	dependencies {
+		compile 'com.github.markusfisch:GalleryImageView:1.0.0'
+	}
+
+### Manually
+
+Drop GalleryImageView.java and [ScalingImageView.java][scalingimageview]
+into your project.
+
 How to use
 ----------
 
-Just drop GalleryImageView.java and [ScalingImageView.java][scalingimageview]
-into your project.
-
 Add it to a layout:
 
-	<com.example.android.appname.widget.GalleryImageView
+	<de.markusfisch.android.scalingimageview.widget.GalleryImageView
 		xmlns:android="http://schemas.android.com/apk/res/android"
 		android:id="@+id/gallery"
 		android:layout_width="match_parent"
