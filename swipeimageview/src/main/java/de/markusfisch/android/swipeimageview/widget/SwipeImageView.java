@@ -514,25 +514,29 @@ public class SwipeImageView extends ScalingImageView {
 			return null;
 		}
 		String path = getImagePathAt(index);
-		for (int tries = 2; tries-- > 0;) {
-			try {
-				return decodeFile(path, size);
-			} catch (OutOfMemoryError e) {
-				postDelayed(new Runnable() {
-					@Override
-					public void run() {
-						loadPreviewAt(index);
-					}
-				}, 300);
-			}
+		if (path == null) {
+			return null;
+		}
+		try {
+			return decodeFile(path, size);
+		} catch (OutOfMemoryError e) {
+			postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					loadPreviewAt(index);
+				}
+			}, 300);
 		}
 		return null;
 	}
 
 	private String getImagePathAt(int index) {
-		return !cursor.isClosed() && cursor.moveToPosition(index) ?
-				cursor.getString(columnIndex) :
-				null;
+		// because Cursor is not thread-safe!
+		synchronized (cursor) {
+			return !cursor.isClosed() && cursor.moveToPosition(index) ?
+					cursor.getString(columnIndex) :
+					null;
+		}
 	}
 
 	private interface OnBitmapLoadedListener {
