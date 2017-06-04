@@ -1,4 +1,4 @@
-PACKAGE = de.markusfisch.android.galleryimageviewdemo
+PACKAGE = de.markusfisch.android.swipeimageviewdemo
 APK = app/build/outputs/apk/app-debug.apk
 
 all: debug install start

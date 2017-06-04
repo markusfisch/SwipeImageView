@@ -18,7 +18,7 @@ android {
 
 dependencies {
 	compile "com.android.support:appcompat-v7:$support_version"
-	compile project(':galleryimageview')
+	compile project(':swipeimageview')
 }
 
 task findbugs(type: FindBugs, dependsOn: 'assembleDebug') {
@@ -26,7 +26,7 @@ task findbugs(type: FindBugs, dependsOn: 'assembleDebug') {
 	source = fileTree('src/main/java/')
 	classes = files(
 		"${project.rootDir}/app/build/intermediates/classes",
-		"${project.rootDir}/galleryimageview/build/intermediates/classes")
+		"${project.rootDir}/swipeimageview/build/intermediates/classes")
 	classpath = files()
 
 	effort = 'default'

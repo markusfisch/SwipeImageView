@@ -1,8 +1,8 @@
-package de.markusfisch.android.galleryimageviewdemo.activity;
+package de.markusfisch.android.swipeimageviewdemo.activity;
 
-import de.markusfisch.android.galleryimageview.widget.GalleryImageView;
+import de.markusfisch.android.swipeimageview.widget.SwipeImageView;
 
-import de.markusfisch.android.galleryimageviewdemo.R;
+import de.markusfisch.android.swipeimageviewdemo.R;
 
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
 	private static final int REQUEST_READ_PERMISSION = 1;
 	private static final String CURRENT_INDEX = "current_index";
 
-	private GalleryImageView imageView;
+	private SwipeImageView imageView;
 	private Cursor cursor;
 	private int currentIndex;
 
@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 		if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-			setGallery(currentIndex);
+			setImages(currentIndex);
 		} else {
 			finish();
 		}
@@ -50,11 +50,11 @@ public class MainActivity extends AppCompatActivity {
 		super.onCreate(state);
 		setContentView(R.layout.activity_main);
 
-		imageView = (GalleryImageView) findViewById(R.id.gallery);
+		imageView = (SwipeImageView) findViewById(R.id.swipe_view);
 		currentIndex = state != null ? state.getInt(CURRENT_INDEX) : 0;
 
 		if (requestReadPermission()) {
-			setGallery(currentIndex);
+			setImages(currentIndex);
 		}
 	}
 
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 		return false;
 	}
 
-	private void setGallery(int index) {
+	private void setImages(int index) {
 		cursor = getContentResolver().query(
 				Images.Media.EXTERNAL_CONTENT_URI,
 				null,

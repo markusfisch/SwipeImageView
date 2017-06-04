@@ -1,4 +1,4 @@
-package de.markusfisch.android.galleryimageview.widget;
+package de.markusfisch.android.swipeimageview.widget;
 
 import de.markusfisch.android.scalingimageview.widget.ScalingImageView;
 
@@ -17,7 +17,7 @@ import android.view.MotionEvent;
 
 import java.util.ArrayList;
 
-public class GalleryImageView extends ScalingImageView {
+public class SwipeImageView extends ScalingImageView {
 	private final ArrayList<Image> previewImages = new ArrayList<>();
 	private final Matrix matrix = new Matrix();
 	private final Runnable animationRunnable = new Runnable() {
@@ -76,17 +76,17 @@ public class GalleryImageView extends ScalingImageView {
 	private long initialTime;
 	private long last;
 
-	public GalleryImageView(Context context) {
+	public SwipeImageView(Context context) {
 		super(context);
 		init(context);
 	}
 
-	public GalleryImageView(Context context, AttributeSet attrs) {
+	public SwipeImageView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		init(context);
 	}
 
-	public GalleryImageView(
+	public SwipeImageView(
 			Context context,
 			AttributeSet attrs,
 			int defStyleAttr) {

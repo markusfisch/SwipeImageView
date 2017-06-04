@@ -1,7 +1,7 @@
-GalleryImageView
+SwipeImageView
 ================
 
-Swipe/zoom/pinch gallery widget for Android.
+Swipe/zoom/pinch ImageView for Android.
 
 How to include
 --------------
@@ -21,12 +21,12 @@ repositories:
 Then add the dependency in your app/build.gradle:
 
 	dependencies {
-		compile 'com.github.markusfisch:GalleryImageView:1.0.0'
+		compile 'com.github.markusfisch:SwipeImageView:1.0.0'
 	}
 
 ### Manually
 
-Drop [GalleryImageView.java][src] and
+Drop [SwipeImageView.java][src] and
 [ScalingImageView.java][scalingimageview] into your project.
 
 How to use
@@ -34,19 +34,19 @@ How to use
 
 Add it to a layout:
 
-	<de.markusfisch.android.galleryimageview.widget.GalleryImageView
+	<de.markusfisch.android.swipeimageview.widget.SwipeImageView
 		xmlns:android="http://schemas.android.com/apk/res/android"
-		android:id="@+id/gallery"
+		android:id="@+id/swipe_view"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"/>
 
 Or create it in java:
 
-	GalleryImageView galleryImageView = new GalleryImageView(context);
+	SwipeImageView swipeImageView = new SwipeImageView(context);
 
 Then, set up the images to display from a [Cursor][cursor]:
 
-	galleryImageView.setImages(cursor, columnName, startIndex);
+	swipeImageView.setImages(cursor, columnName, startIndex);
 
 If you don't have a Cursor for your image collection, you may simply use
 a [MatrixCursor][matrixcursor]:
@@ -56,7 +56,7 @@ a [MatrixCursor][matrixcursor]:
 	for (String path : paths) {
 		cursor.addRow(new Object[]{path});
 	}
-	galleryImageView.setImages(cursor, columnName, index);
+	swipeImageView.setImages(cursor, columnName, index);
 
 Just remember to always close Cursor's when they're no longer required:
 
@@ -81,7 +81,7 @@ License
 
 This widget is so basic, it should be Public Domain. And it is.
 
-[src]: https://github.com/markusfisch/GalleryImageView/blob/master/galleryimageview/src/main/java/de/markusfisch/android/galleryimageview/widget/GalleryImageView.java
+[src]: https://github.com/markusfisch/SwipeImageView/blob/master/swipeimageview/src/main/java/de/markusfisch/android/swipeimageview/widget/SwipeImageView.java
 [scalingimageview]: https://github.com/markusfisch/ScalingImageView
 [cursor]: https://developer.android.com/reference/android/database/Cursor.html
 [matrixcursor]: https://developer.android.com/reference/android/database/MatrixCursor.html

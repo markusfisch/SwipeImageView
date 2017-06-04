@@ -10,7 +10,7 @@
 	</Match>
 	<!-- this fall through is intentional and accordingly commented -->
 	<Match>
-		<Class name="de.markusfisch.android.galleryimageview.widget.GalleryImageView"/>
+		<Class name="de.markusfisch.android.swipeimageview.widget.SwipeImageView"/>
 		<Method name="onTouchEvent"/>
 		<Bug pattern="SF_SWITCH_FALLTHROUGH"/>
 	</Match>

@@ -1,1 +1,1 @@
-include ':app', ':galleryimageview'
+include ':app', ':swipeimageview'
