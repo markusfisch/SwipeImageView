@@ -404,6 +404,8 @@ public class SwipeImageView extends ScalingImageView {
 			}
 			float nd = d / getWidth();
 			if (nd < 0) {
+				// onPull(float) is deprecated from SDK 11 but
+				// required because of support for SDK 9
 				edgeEffectLeft.onPull(nd);
 			} else if (nd > 0) {
 				edgeEffectRight.onPull(nd);
