@@ -9,12 +9,14 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.RectF;
+import android.media.ExifInterface;
 import android.support.v4.widget.EdgeEffectCompat;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class SwipeImageView extends ScalingImageView {
@@ -48,9 +50,9 @@ public class SwipeImageView extends ScalingImageView {
 			decodeFileAtAsync(currentIndex, maxSize,
 					new OnBitmapLoadedListener() {
 				@Override
-				public void onBitmapLoaded(Bitmap bitmap) {
+				public void onBitmapLoaded(Bitmap bitmap, int orientation) {
 					if (!swiping && index == currentIndex) {
-						setImageBitmap(bitmap);
+						setImageBitmap(bitmap, orientation);
 					}
 				}
 			});
@@ -143,6 +145,10 @@ public class SwipeImageView extends ScalingImageView {
 							image.rect,
 							bounds,
 							Matrix.ScaleToFit.CENTER);
+					matrix.preRotate(
+							image.orientation,
+							image.centerX,
+							image.centerY);
 					matrix.postTranslate(
 							deltaX + (i - currentIndex) * boundsWidth,
 							0);
@@ -219,7 +225,7 @@ public class SwipeImageView extends ScalingImageView {
 		return previewImages.get(previewIndex);
 	}
 
-	protected Bitmap decodeFile(String file, int size) {
+	protected OrientedBitmap decodeFile(String file, int size) {
 		BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inJustDecodeBounds = true;
 		BitmapFactory.decodeFile(file, options);
@@ -229,7 +235,9 @@ public class SwipeImageView extends ScalingImageView {
 				size,
 				size);
 		options.inJustDecodeBounds = false;
-		return BitmapFactory.decodeFile(file, options);
+		return new OrientedBitmap(
+				BitmapFactory.decodeFile(file, options),
+				getExifOrientation(file));
 	}
 
 	protected static int calculateInSampleSize(
@@ -250,6 +258,26 @@ public class SwipeImageView extends ScalingImageView {
 		}
 
 		return inSampleSize;
+	}
+
+	protected static int getExifOrientation(String file) {
+		try {
+			ExifInterface exif = new ExifInterface(file);
+			switch (exif.getAttributeInt(
+					ExifInterface.TAG_ORIENTATION,
+					ExifInterface.ORIENTATION_UNDEFINED)) {
+				default:
+					return 0;
+				case ExifInterface.ORIENTATION_ROTATE_90:
+					return 90;
+				case ExifInterface.ORIENTATION_ROTATE_180:
+					return 180;
+				case ExifInterface.ORIENTATION_ROTATE_270:
+					return 270;
+			}
+		} catch (IOException e) {
+			return 0;
+		}
 	}
 
 	protected void drawEdgeEffects(Canvas canvas) {
@@ -432,7 +460,18 @@ public class SwipeImageView extends ScalingImageView {
 
 	private void setImageBitmapFromPreview(int index) {
 		Image image = getPreviewImage(index);
-		setImageBitmap(image != null ? image.bitmap : null);
+		Bitmap bitmap = null;
+		int orientation = 0;
+		if (image != null) {
+			bitmap = image.bitmap;
+			orientation = image.orientation;
+		}
+		setImageBitmap(bitmap, orientation);
+	}
+
+	private void setImageBitmap(Bitmap bitmap, int orientation) {
+		setImageRotation(orientation);
+		setImageBitmap(bitmap);
 	}
 
 	private float getSwipeDistance(MotionEvent event) {
@@ -458,14 +497,14 @@ public class SwipeImageView extends ScalingImageView {
 	private void loadPreviewAt(final int index) {
 		decodeFileAtAsync(index, previewSize, new OnBitmapLoadedListener() {
 			@Override
-			public void onBitmapLoaded(Bitmap bitmap) {
+			public void onBitmapLoaded(Bitmap bitmap, int orientation) {
 				Image image = getPreviewImage(index);
 				if (image == null) {
 					return;
 				}
-				image.set(bitmap);
+				image.set(bitmap, orientation);
 				if (index == currentIndex) {
-					setImageBitmap(bitmap);
+					setImageBitmap(bitmap, orientation);
 				}
 			}
 		});
@@ -484,16 +523,22 @@ public class SwipeImageView extends ScalingImageView {
 			final int index,
 			final int size,
 			final OnBitmapLoadedListener listener) {
-		AsyncTask<Void, Void, Bitmap> task =
-				new AsyncTask<Void, Void, Bitmap>() {
+		AsyncTask<Void, Void, OrientedBitmap> task =
+				new AsyncTask<Void, Void, OrientedBitmap>() {
 			@Override
-			public Bitmap doInBackground(Void... nothings) {
+			public OrientedBitmap doInBackground(Void... nothings) {
 				return decodeFileAt(index, size);
 			}
 
 			@Override
-			protected void onPostExecute(Bitmap bitmap) {
-				listener.onBitmapLoaded(bitmap);
+			protected void onPostExecute(OrientedBitmap orientedBitmap) {
+				if (orientedBitmap != null) {
+					listener.onBitmapLoaded(
+							orientedBitmap.bitmap,
+							orientedBitmap.orientation);
+				} else {
+					listener.onBitmapLoaded(null, 0);
+				}
 			}
 		};
 
@@ -509,7 +554,7 @@ public class SwipeImageView extends ScalingImageView {
 		}
 	}
 
-	private Bitmap decodeFileAt(final int index, int size) {
+	private OrientedBitmap decodeFileAt(final int index, int size) {
 		if (index < 0 || index >= imageCount) {
 			return null;
 		}
@@ -526,8 +571,8 @@ public class SwipeImageView extends ScalingImageView {
 					loadPreviewAt(index);
 				}
 			}, 300);
+			return null;
 		}
-		return null;
 	}
 
 	private String getImagePathAt(int index) {
@@ -539,20 +584,29 @@ public class SwipeImageView extends ScalingImageView {
 		}
 	}
 
-	private interface OnBitmapLoadedListener {
-		void onBitmapLoaded(Bitmap bitmap);
-	}
-
-	protected static class Image {
+	protected class Image {
 		protected final RectF rect = new RectF();
 		protected Bitmap bitmap;
+		protected int orientation;
+		protected float centerX;
+		protected float centerY;
 
-		private void set(Bitmap bitmap) {
+		private void set(Bitmap bitmap, int orientation) {
 			recycle();
-			if (bitmap != null) {
-				this.bitmap = bitmap;
-				rect.set(0, 0, bitmap.getWidth(), bitmap.getHeight());
+			if (bitmap == null) {
+				return;
 			}
+
+			this.orientation = orientation;
+			this.bitmap = bitmap;
+
+			float w = bitmap.getWidth();
+			float h = bitmap.getHeight();
+			rect.set(0, 0, w, h);
+			centerX = w * .5f;
+			centerY = h * .5f;
+			matrix.setRotate(orientation, centerX, centerY);
+			matrix.mapRect(rect, rect);
 		}
 
 		private void recycle() {
@@ -561,5 +615,19 @@ public class SwipeImageView extends ScalingImageView {
 				bitmap = null;
 			}
 		}
+	}
+
+	protected static class OrientedBitmap {
+		protected final Bitmap bitmap;
+		protected final int orientation;
+
+		protected OrientedBitmap(Bitmap bitmap, int orientation) {
+			this.bitmap = bitmap;
+			this.orientation = orientation;
+		}
+	}
+
+	private interface OnBitmapLoadedListener {
+		void onBitmapLoaded(Bitmap bitmap, int orientation);
 	}
 }
