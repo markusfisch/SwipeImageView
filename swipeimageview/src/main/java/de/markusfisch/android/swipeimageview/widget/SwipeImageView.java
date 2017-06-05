@@ -96,11 +96,22 @@ public class SwipeImageView extends ScalingImageView {
 		init(context);
 	}
 
+	public void closeCursor() {
+		if (cursor == null) {
+			return;
+		}
+		synchronized (cursor) {
+			cursor.close();
+		}
+		cursor = null;
+	}
+
 	public void setImages(Cursor cursor, String columnName) {
 		setImages(cursor, columnName, 0);
 	}
 
 	public void setImages(Cursor cursor, String columnName, int index) {
+		closeCursor();
 		if (cursor == null ||
 				(columnIndex = cursor.getColumnIndex(columnName)) < 0 ||
 				(imageCount = cursor.getCount()) < 1) {
@@ -576,6 +587,9 @@ public class SwipeImageView extends ScalingImageView {
 	}
 
 	private String getImagePathAt(int index) {
+		if (cursor == null) {
+			return null;
+		}
 		// because Cursor is not thread-safe!
 		synchronized (cursor) {
 			return !cursor.isClosed() && cursor.moveToPosition(index) ?

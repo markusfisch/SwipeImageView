@@ -48,6 +48,15 @@ Then, set up the images to display from a [Cursor][cursor]:
 
 	swipeImageView.setImages(cursor, columnName, startIndex);
 
+Make sure to always invoke SwipeImageView.closeCursor() to close the
+transferred cursor:
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		swipeImageView.closeCursor();
+	}
+
 If you don't have a Cursor for your image collection, you may simply use
 a [MatrixCursor][matrixcursor]:
 
@@ -58,16 +67,7 @@ a [MatrixCursor][matrixcursor]:
 	}
 	swipeImageView.setImages(cursor, columnName, index);
 
-Just remember to always close Cursor's when they're no longer required:
-
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
-		if (cursor != null) {
-			cursor.close();
-			cursor = null;
-		}
-	}
+Make sure to call SwipeImageView.closeCursor() here too.
 
 Demo
 ----

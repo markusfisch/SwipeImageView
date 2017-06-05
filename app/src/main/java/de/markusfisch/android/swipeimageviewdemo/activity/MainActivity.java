@@ -19,7 +19,6 @@ public class MainActivity extends AppCompatActivity {
 	private static final String CURRENT_INDEX = "current_index";
 
 	private SwipeImageView imageView;
-	private Cursor cursor;
 	private int currentIndex;
 
 	@Override
@@ -61,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		closeCursor();
+		imageView.closeCursor();
 	}
 
 	private boolean requestReadPermission() {
@@ -85,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void setImages(int index) {
-		cursor = getContentResolver().query(
+		Cursor cursor = getContentResolver().query(
 				Images.Media.EXTERNAL_CONTENT_URI,
 				null,
 				null,
@@ -94,16 +93,9 @@ public class MainActivity extends AppCompatActivity {
 		if (cursor == null) {
 			return;
 		} else if (!cursor.moveToFirst()) {
-			closeCursor();
+			cursor.close();
 			return;
 		}
 		imageView.setImages(cursor, Images.Media.DATA, index);
-	}
-
-	private void closeCursor() {
-		if (cursor != null) {
-			cursor.close();
-			cursor = null;
-		}
 	}
 }
