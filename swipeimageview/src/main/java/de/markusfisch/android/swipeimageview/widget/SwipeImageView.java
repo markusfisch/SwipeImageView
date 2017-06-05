@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class SwipeImageView extends ScalingImageView {
-	private final ArrayList<Image> previewImages = new ArrayList<>();
+	private final ArrayList<PreviewImage> previewImages = new ArrayList<>();
 	private final Matrix matrix = new Matrix();
 	private final Runnable animationRunnable = new Runnable() {
 		@Override
@@ -150,7 +150,7 @@ public class SwipeImageView extends ScalingImageView {
 			for (int i = Math.max(0, currentIndex - 1),
 					l = Math.min(imageCount - 1, currentIndex + 1);
 					i <= l; ++i) {
-				Image image = getPreviewImage(i);
+				PreviewImage image = getPreviewImage(i);
 				if (image != null && image.bitmap != null) {
 					matrix.setRectToRect(
 							image.rect,
@@ -228,7 +228,7 @@ public class SwipeImageView extends ScalingImageView {
 		return deltaX;
 	}
 
-	protected Image getPreviewImage(int index) {
+	protected PreviewImage getPreviewImage(int index) {
 		int previewIndex = getPreviewIndex(index);
 		if (previewIndex < 0 || previewIndex >= previewImages.size()) {
 			return null;
@@ -342,7 +342,7 @@ public class SwipeImageView extends ScalingImageView {
 		edgeEffectRight = new EdgeEffectCompat(context);
 
 		for (int i = radius * 2 + 1; i-- > 0;) {
-			previewImages.add(new Image());
+			previewImages.add(new PreviewImage());
 		}
 	}
 
@@ -458,19 +458,19 @@ public class SwipeImageView extends ScalingImageView {
 		if (d < 0) {
 			previewImages.get(0).recycle();
 			previewImages.remove(0);
-			previewImages.add(new Image());
+			previewImages.add(new PreviewImage());
 			loadPreviewAt(currentIndex + radius);
 		} else if (d > 0) {
 			int lastItem = previewImages.size() - 1;
 			previewImages.get(lastItem).recycle();
 			previewImages.remove(lastItem);
-			previewImages.add(0, new Image());
+			previewImages.add(0, new PreviewImage());
 			loadPreviewAt(currentIndex - radius);
 		}
 	}
 
 	private void setImageBitmapFromPreview(int index) {
-		Image image = getPreviewImage(index);
+		PreviewImage image = getPreviewImage(index);
 		Bitmap bitmap = null;
 		int orientation = 0;
 		if (image != null) {
@@ -509,7 +509,7 @@ public class SwipeImageView extends ScalingImageView {
 		decodeFileAtAsync(index, previewSize, new OnBitmapLoadedListener() {
 			@Override
 			public void onBitmapLoaded(Bitmap bitmap, int orientation) {
-				Image image = getPreviewImage(index);
+				PreviewImage image = getPreviewImage(index);
 				if (image == null) {
 					return;
 				}
@@ -598,7 +598,7 @@ public class SwipeImageView extends ScalingImageView {
 		}
 	}
 
-	protected class Image {
+	protected class PreviewImage {
 		protected final RectF rect = new RectF();
 		protected Bitmap bitmap;
 		protected int orientation;
