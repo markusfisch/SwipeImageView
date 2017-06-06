@@ -96,6 +96,10 @@ public class SwipeImageView extends ScalingImageView {
 		init(context);
 	}
 
+	/**
+	 * Close cursor and free resources.
+	 * Make sure to call this as soon as this view isn't required anymore.
+	 */
 	public void closeCursor() {
 		if (cursor == null) {
 			return;
@@ -106,10 +110,23 @@ public class SwipeImageView extends ScalingImageView {
 		cursor = null;
 	}
 
+	/**
+	 * Set image collection
+	 *
+	 * @param cursor cursor to image collection
+	 * @param columnName name of column holding image path
+	 */
 	public void setImages(Cursor cursor, String columnName) {
 		setImages(cursor, columnName, 0);
 	}
 
+	/**
+	 * Set image collection
+	 *
+	 * @param cursor cursor to image collection
+	 * @param columnName name of column holding image path
+	 * @param index selected image
+	 */
 	public void setImages(Cursor cursor, String columnName, int index) {
 		closeCursor();
 		if (cursor == null ||
@@ -123,18 +140,36 @@ public class SwipeImageView extends ScalingImageView {
 		postLoadMax();
 	}
 
+	/**
+	 * Set maximum image size for zoom/pan image.
+	 * Default is 1024.
+	 *
+	 * @param size maximum number of pixels in larger dimension
+	 */
 	public void setMaxImageSize(int size) {
 		maxSize = Math.max(1, size);
 	}
 
+	/**
+	 * Set maximum image size of preview images.
+	 * Default is 256.
+	 *
+	 * @param size maximum number of pixels in larger dimension
+	 */
 	public void setPreviewImageSize(int size) {
 		previewSize = Math.max(1, size);
 	}
 
+	/**
+	 * Return index of currently selected image
+	 */
 	public int getCurrentIndex() {
 		return currentIndex;
 	}
 
+	/**
+	 * Return number of images in collection
+	 */
 	public int getImageCount() {
 		return imageCount;
 	}
@@ -224,10 +259,18 @@ public class SwipeImageView extends ScalingImageView {
 		return super.onTouchEvent(event);
 	}
 
+	/**
+	 * Return current swipe displacement
+	 */
 	protected float getDelta() {
 		return deltaX;
 	}
 
+	/**
+	 * Return preview image
+	 *
+	 * @param index index in image collection
+	 */
 	protected PreviewImage getPreviewImage(int index) {
 		int previewIndex = getPreviewIndex(index);
 		if (previewIndex < 0 || previewIndex >= previewImages.size()) {
@@ -236,6 +279,12 @@ public class SwipeImageView extends ScalingImageView {
 		return previewImages.get(previewIndex);
 	}
 
+	/**
+	 * Decode given image file
+	 *
+	 * @param file image path
+	 * @param size maximum image size
+	 */
 	protected OrientedBitmap decodeFile(String file, int size) {
 		BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inJustDecodeBounds = true;
@@ -251,6 +300,14 @@ public class SwipeImageView extends ScalingImageView {
 				getExifOrientation(file));
 	}
 
+	/**
+	 * Calculate sampling factor
+	 *
+	 * @param width image width in pixels
+	 * @param height image height in pixels
+	 * @param reqWidth required width in pixels
+	 * @param reqHeight required height in pixels
+	 */
 	protected static int calculateInSampleSize(
 			int width,
 			int height,
@@ -271,6 +328,11 @@ public class SwipeImageView extends ScalingImageView {
 		return inSampleSize;
 	}
 
+	/**
+	 * Return image orientation in degrees
+	 *
+	 * @param file path of image file
+	 */
 	protected static int getExifOrientation(String file) {
 		try {
 			ExifInterface exif = new ExifInterface(file);
@@ -291,6 +353,11 @@ public class SwipeImageView extends ScalingImageView {
 		}
 	}
 
+	/**
+	 * Draw edge effects when the user scrolls beyond content bounds
+	 *
+	 * @param canvas target canvas
+	 */
 	protected void drawEdgeEffects(Canvas canvas) {
 		drawEdgeEffect(canvas, edgeEffectLeft, 90);
 		drawEdgeEffect(canvas, edgeEffectRight, 270);
@@ -598,6 +665,7 @@ public class SwipeImageView extends ScalingImageView {
 		}
 	}
 
+	/** A preview image */
 	protected class PreviewImage {
 		protected final RectF rect = new RectF();
 		protected Bitmap bitmap;
@@ -631,6 +699,7 @@ public class SwipeImageView extends ScalingImageView {
 		}
 	}
 
+	/** A bitmap with an orientation */
 	protected static class OrientedBitmap {
 		protected final Bitmap bitmap;
 		protected final int orientation;
