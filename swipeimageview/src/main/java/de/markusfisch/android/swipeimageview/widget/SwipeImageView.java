@@ -160,16 +160,12 @@ public class SwipeImageView extends ScalingImageView {
 		previewSize = Math.max(1, size);
 	}
 
-	/**
-	 * Return index of currently selected image
-	 */
+	/** Return index of currently selected image */
 	public int getCurrentIndex() {
 		return currentIndex;
 	}
 
-	/**
-	 * Return number of images in collection
-	 */
+	/** Return number of images in collection */
 	public int getImageCount() {
 		return imageCount;
 	}
@@ -259,9 +255,7 @@ public class SwipeImageView extends ScalingImageView {
 		return super.onTouchEvent(event);
 	}
 
-	/**
-	 * Return current swipe displacement
-	 */
+	/** Return current swipe displacement */
 	protected float getDelta() {
 		return deltaX;
 	}
