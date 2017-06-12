@@ -425,6 +425,7 @@ public class SwipeImageView extends ScalingImageView {
 
 	private void startSwipe() {
 		removeCallbacks(loadMaxRunnable);
+		deltaX = 0;
 		swiping = true;
 	}
 
@@ -488,6 +489,7 @@ public class SwipeImageView extends ScalingImageView {
 			setImageBitmapFromPreview(currentIndex);
 			postLoadMax();
 		}
+		deltaX = 0;
 		last = 0;
 		swiping = false;
 	}
