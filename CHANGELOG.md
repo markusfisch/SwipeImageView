@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.1.2
+* Fixed visibility of onDraw()
+
 ## 1.1.1
 * Fixed image flickering when swiping fast
 
