@@ -171,38 +171,6 @@ public class SwipeImageView extends ScalingImageView {
 	}
 
 	@Override
-	public void onDraw(Canvas canvas) {
-		if (!swiping) {
-			super.onDraw(canvas);
-		} else {
-			RectF bounds = getBounds();
-			float boundsWidth = bounds.width();
-
-			for (int i = Math.max(0, currentIndex - 1),
-					l = Math.min(imageCount - 1, currentIndex + 1);
-					i <= l; ++i) {
-				PreviewImage image = getPreviewImage(i);
-				if (image != null && image.bitmap != null) {
-					matrix.setRectToRect(
-							image.rect,
-							bounds,
-							Matrix.ScaleToFit.CENTER);
-					matrix.preRotate(
-							image.orientation,
-							image.centerX,
-							image.centerY);
-					matrix.postTranslate(
-							deltaX + (i - currentIndex) * boundsWidth,
-							0);
-					canvas.drawBitmap(image.bitmap, matrix, null);
-				}
-			}
-		}
-
-		drawEdgeEffects(canvas);
-	}
-
-	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		// ignore all input while animating
 		if (last > 0) {
@@ -253,6 +221,38 @@ public class SwipeImageView extends ScalingImageView {
 
 		// forward all other events to ScalingImageView
 		return super.onTouchEvent(event);
+	}
+
+	@Override
+	protected void onDraw(Canvas canvas) {
+		if (!swiping) {
+			super.onDraw(canvas);
+		} else {
+			RectF bounds = getBounds();
+			float boundsWidth = bounds.width();
+
+			for (int i = Math.max(0, currentIndex - 1),
+					l = Math.min(imageCount - 1, currentIndex + 1);
+					i <= l; ++i) {
+				PreviewImage image = getPreviewImage(i);
+				if (image != null && image.bitmap != null) {
+					matrix.setRectToRect(
+							image.rect,
+							bounds,
+							Matrix.ScaleToFit.CENTER);
+					matrix.preRotate(
+							image.orientation,
+							image.centerX,
+							image.centerY);
+					matrix.postTranslate(
+							deltaX + (i - currentIndex) * boundsWidth,
+							0);
+					canvas.drawBitmap(image.bitmap, matrix, null);
+				}
+			}
+		}
+
+		drawEdgeEffects(canvas);
 	}
 
 	/** Return current swipe displacement */
