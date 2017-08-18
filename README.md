@@ -1,5 +1,4 @@
-SwipeImageView
-================
+# SwipeImageView
 
 Swipe/zoom/pinch ImageView for Android.
 
@@ -26,8 +25,17 @@ Then add the dependency in your app/build.gradle:
 
 ### Manually
 
-Drop [SwipeImageView.java][src] and
-[ScalingImageView.java][scalingimageview] into your project.
+If you prefer your repositories to be self-reliant, just copy the
+`swipeimageview` folder into your project root and add it as a subproject
+to `settings.gradle`:
+
+	include ':app', ':swipeimageview'
+
+And to the dependencies block of your `app/build.gradle`:
+
+	dependencies {
+		compile project(':swipeimageview')
+	}
 
 How to use
 ----------
@@ -42,13 +50,15 @@ Add it to a layout:
 
 Or create it in java:
 
+	import de.markusfisch.android.swipeimageview.widget.SwipeImageView;
+
 	SwipeImageView swipeImageView = new SwipeImageView(context);
 
 Then, set up the images to display from a [Cursor][cursor]:
 
 	swipeImageView.setImages(cursor, columnName, startIndex);
 
-Make sure to always invoke SwipeImageView.closeCursor() to close the
+Make sure to always invoke `SwipeImageView.closeCursor()` to close the
 transferred cursor:
 
 	@Override
@@ -67,7 +77,7 @@ a [MatrixCursor][matrixcursor]:
 	}
 	swipeImageView.setImages(cursor, columnName, index);
 
-Make sure to call SwipeImageView.closeCursor() here too.
+Make sure to call `SwipeImageView.closeCursor()` here too.
 
 Demo
 ----
@@ -81,7 +91,6 @@ License
 
 This widget is so basic, it should be Public Domain. And it is.
 
-[src]: https://github.com/markusfisch/SwipeImageView/blob/master/swipeimageview/src/main/java/de/markusfisch/android/swipeimageview/widget/SwipeImageView.java
 [scalingimageview]: https://github.com/markusfisch/ScalingImageView
 [cursor]: https://developer.android.com/reference/android/database/Cursor.html
 [matrixcursor]: https://developer.android.com/reference/android/database/MatrixCursor.html
