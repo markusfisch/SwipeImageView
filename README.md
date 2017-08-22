@@ -23,11 +23,12 @@ Then add the dependency in your app/build.gradle:
 		compile 'com.github.markusfisch:SwipeImageView:1.1.2'
 	}
 
-### Manually
+### As subproject
 
-If you prefer your repositories to be self-reliant, just copy the
-`swipeimageview` folder (and `scalingimageview` from [here][scalingimageview])
-into your project root and add them as subprojects to `settings.gradle`:
+If you prefer your project to be self-reliant and completely modifiable,
+just copy the `swipeimageview` folder (and `scalingimageview` from
+[here][scalingimageview]) into your project root and add them as
+subprojects to `settings.gradle`:
 
 	include ':app', ':swipeimageview', ':scalingimageview'
 
