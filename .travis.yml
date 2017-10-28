@@ -1,0 +1,18 @@
+language: android
+android:
+  components:
+    - platform-tools
+    - build-tools-26.0.0
+    - android-26
+    - extra-android-m2repository
+addons:
+  sonarcloud:
+    organization: "markusfisch-github"
+    token:
+      secure: "xiV5xkeB179rD5b6x254xTZz2pLTDOPB+P1R7k5sktRqldl1eC/N9WD85Ijt8qTtkYrBI68EvI3KASSnSuN7IGReDeD/PFrNDdiQT4AV8nJQQQRBjlsB6FUW+T0EIYwvR4DtsBIFHacSd+z7D4e6qiJ5b4Ke7C08cvLkiR9U/UT0C9FuN4705y/4u1HcV7fBsm2/I15iNUhEZhtMGWTfbzWYINJnHfZNp91U5JQ0IJHHhlDbdH7ftTYYPWI6Ze5Y2S3iYnV2CEgIKwQSIf+hdS5mmgXl86nlGg6O0nB9PJh/Rq+Ojazx0aO/ExKQsBtNoj1HhZxvaZbZTZli6iNd/lHvvjjjw6K6cDmgqh1qaeldd+gAjcgzZsxfJnEDQJvHyxXzho7Xd030eruMBhsO30k5xesckFCKK7oRGsVo2JQhBeVTA9gjprEi+XO5JUftVaVkQZtUkD7zUJ05TUro8lgblM3DWMdTEoQLNcV6VbAE5t1+U8Day/AcfPqYAJfrWP6dzvdvSn7XE1vnp8F7fyYntJUb4zvhgcXzqykKuEqOXRlXPbWmuFVzaMiFqOmnwaE6aZH41CH49YBLOFl9lgJSsLBX8TkMzobJcxQW8cwmPIqhBs9WJUI4O+Cn31Jbb2PB7Y8liThq6+50bA8RUiBCv7kHs+o4rg7fnNPlqQg="
+script:
+  - bash gradlew build
+  - bash gradlew sonarqube
+branches:
+  only:
+    - master

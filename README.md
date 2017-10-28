@@ -1,5 +1,7 @@
 # SwipeImageView
 
+![Travis-ci](https://api.travis-ci.org/markusfisch/SwipeImageView.svg)
+
 Swipe/zoom/pinch ImageView for Android.
 
 How to include
