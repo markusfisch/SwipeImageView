@@ -80,12 +80,12 @@ public class SwipeImageView extends ScalingImageView {
 
 	public SwipeImageView(Context context) {
 		super(context);
-		init(context);
+		initView(context);
 	}
 
 	public SwipeImageView(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		init(context);
+		initView(context);
 	}
 
 	public SwipeImageView(
@@ -93,7 +93,7 @@ public class SwipeImageView extends ScalingImageView {
 			AttributeSet attrs,
 			int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
-		init(context);
+		initView(context);
 	}
 
 	/**
@@ -395,7 +395,7 @@ public class SwipeImageView extends ScalingImageView {
 		canvas.restoreToCount(restoreCount);
 	}
 
-	private void init(Context context) {
+	private void initView(Context context) {
 		float dp = context.getResources().getDisplayMetrics().density;
 		swipeThreshold = 16f * dp;
 
