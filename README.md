@@ -1,6 +1,6 @@
 # SwipeImageView
 
-![Travis-ci](https://api.travis-ci.org/markusfisch/SwipeImageView.svg)
+<a href="https://travis-ci.org/markusfisch/SwipeImageView"><img src="https://api.travis-ci.org/markusfisch/SwipeImageView.svg" alt="Travis-ci"/></a>
 
 Swipe/zoom/pinch ImageView for Android.
 
