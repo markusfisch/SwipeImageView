@@ -374,7 +374,7 @@ public class SwipeImageView extends ScalingImageView {
 
 		if (degrees == 270) {
 			canvas.translate(
-					-height + getPaddingTop(),
+					(float) -height + getPaddingTop(),
 					0);
 		} else {
 			canvas.translate(
@@ -454,7 +454,7 @@ public class SwipeImageView extends ScalingImageView {
 		deltaX = trim(getSwipeDistance(event));
 
 		final float swipeDistance = Math.abs(deltaX);
-		final float swipeTime = event.getEventTime() - initialTime;
+		final float swipeTime = (float) event.getEventTime() - initialTime;
 		final float width = getBounds().width();
 		final float speed = Math.min(width * .1f, Math.max(
 				width * .06f,
