@@ -47,6 +47,17 @@ And replace the `com.github.markusfisch:ScalingImageView...` entry in
 		compile project(':scalingimageview')
 	}
 
+Because `swipeimageview/build.gradle` and `scalingimageview/build.gradle`
+use variables to manage version numbers of Android's dependencies, you
+need to define them in you root `build.gradle` (or replace the variables
+with literals):
+
+	buildscript {
+		ext.tools_version = '2.3.3'
+		ext.support_version = '25.3.1'
+		...
+	}
+
 How to use
 ----------
 
