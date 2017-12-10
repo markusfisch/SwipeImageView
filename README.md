@@ -47,6 +47,11 @@ And replace the `com.github.markusfisch:ScalingImageView...` entry in
 		compile project(':scalingimageview')
 	}
 
+Then remove the Android Maven plug-in from `swipeimageview/build.gradle`
+and `scalingimageview/build.gradle`:
+
+	apply plugin: 'com.github.dcendents.android-maven'
+
 Because `swipeimageview/build.gradle` and `scalingimageview/build.gradle`
 use variables to manage version numbers of Android's dependencies, you
 need to define them in you root `build.gradle` (or replace the variables
