@@ -1,5 +1,7 @@
 # SwipeImageView
 
+[![](https://jitpack.io/v/markusfisch/SwipeImageView.svg)](https://jitpack.io/#markusfisch/SwipeImageView)
+
 Swipe/zoom/pinch ImageView for Android.
 
 How to include
@@ -20,7 +22,7 @@ repositories:
 Then add the dependency in your app/build.gradle:
 
 	dependencies {
-		compile 'com.github.markusfisch:SwipeImageView:1.1.2'
+		compile 'com.github.markusfisch:SwipeImageView:1.1.3'
 	}
 
 ### As subproject

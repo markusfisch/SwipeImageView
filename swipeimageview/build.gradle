@@ -10,6 +10,8 @@ buildscript {
 }
 
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+group = 'com.github.markusfisch'
 
 android {
 	compileSdkVersion sdk_version
@@ -19,12 +21,12 @@ android {
 		minSdkVersion 9
 		targetSdkVersion sdk_version
 
-		versionCode 3
-		versionName '1.1.2'
+		versionCode 4
+		versionName '1.1.3'
 	}
 }
 
 dependencies {
 	compile "com.android.support:appcompat-v7:$support_version"
-	compile 'com.github.markusfisch:ScalingImageView:1.0.1'
+	compile 'com.github.markusfisch:ScalingImageView:1.0.5'
 }

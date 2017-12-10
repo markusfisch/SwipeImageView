@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.1.3
+* Updated to latest ScalingImageView
+* Fixed JitPack gradle configuration
+
 ## 1.1.2
 * Fixed visibility of onDraw()
 
