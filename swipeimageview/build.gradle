@@ -28,5 +28,5 @@ android {
 
 dependencies {
 	compile "com.android.support:appcompat-v7:$support_version"
-	compile 'com.github.markusfisch:ScalingImageView:1.0.5'
+	compile 'com.github.markusfisch:ScalingImageView:1.1.2'
 }
