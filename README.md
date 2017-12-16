@@ -4,8 +4,7 @@
 
 Swipe/zoom/pinch ImageView for Android.
 
-How to include
---------------
+## How to include
 
 ### Gradle
 
@@ -63,8 +62,7 @@ with literals):
 		...
 	}
 
-How to use
-----------
+## How to use
 
 Add it to a layout:
 
@@ -105,15 +103,13 @@ a [MatrixCursor][matrixcursor]:
 
 Make sure to call `SwipeImageView.closeCursor()` here too.
 
-Demo
-----
+## Demo
 
 This is a demo app you may use to see and try if this widget is what
 you're searching for. Either import it into Android Studio or, if you're
 not on that thing from Redmond, just type make to build, install and run.
 
-License
--------
+## License
 
 This widget is so basic, it should be Public Domain. And it is.
 
