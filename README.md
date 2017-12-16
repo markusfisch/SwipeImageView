@@ -22,7 +22,7 @@ repositories:
 Then add the dependency in your app/build.gradle:
 
 	dependencies {
-		compile 'com.github.markusfisch:SwipeImageView:1.1.3'
+		compile 'com.github.markusfisch:SwipeImageView:1.2.0'
 	}
 
 ### As subproject
