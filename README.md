@@ -1,64 +1,20 @@
 # SwipeImageView
 
-[![](https://jitpack.io/v/markusfisch/SwipeImageView.svg)](https://jitpack.io/#markusfisch/SwipeImageView)
-
 Swipe/zoom/pinch ImageView for Android.
 
 ## How to include
 
-### Gradle
+### Android Archive
 
-Add the JitPack repository in your root build.gradle at the end of
-repositories:
+Just download the latest `aar` from
+[Releases](https://github.com/markusfisch/SwipeImageView/releases) and put it
+into `app/libs` in your app.
 
-	allprojects {
-		repositories {
-			...
-			maven { url 'https://jitpack.io' }
-		}
-	}
-
-Then add the dependency in your app/build.gradle:
+Then make sure your `app/build.gradle` contains the following line in the
+`dependencies` block:
 
 	dependencies {
-		compile 'com.github.markusfisch:SwipeImageView:1.2.0'
-	}
-
-### As subproject
-
-If you prefer your project to be self-reliant and completely modifiable,
-just copy the `swipeimageview` folder (and `scalingimageview` from
-[here][scalingimageview]) into your project root and add them as
-subprojects to `settings.gradle`:
-
-	include ':app', ':swipeimageview', ':scalingimageview'
-
-Add `swipeimageview` to the dependencies block of your `app/build.gradle`:
-
-	dependencies {
-		compile project(':swipeimageview')
-	}
-
-And replace the `com.github.markusfisch:ScalingImageView...` entry in
-`swipeimageview/build.gradle` with the local subproject:
-
-	dependencies {
-		compile project(':scalingimageview')
-	}
-
-Then remove the Android Maven plug-in from `swipeimageview/build.gradle`
-and `scalingimageview/build.gradle`:
-
-	apply plugin: 'com.github.dcendents.android-maven'
-
-Because `swipeimageview/build.gradle` and `scalingimageview/build.gradle`
-use variables to manage version numbers of Android's dependencies, you
-need to define them in you root `build.gradle` (or replace the variables
-with literals):
-
-	buildscript {
-		ext.tools_version = '2.3.3'
-		ext.support_version = '25.3.1'
+		implementation fileTree(dir: 'libs', include: '*')
 		...
 	}
 

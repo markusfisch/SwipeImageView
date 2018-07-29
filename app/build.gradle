@@ -17,8 +17,8 @@ android {
 }
 
 dependencies {
-	compile "com.android.support:appcompat-v7:$support_version"
-	compile project(':swipeimageview')
+	implementation "com.android.support:appcompat-v7:$support_version"
+	implementation project(':swipeimageview')
 }
 
 task findbugs(type: FindBugs, dependsOn: 'assembleDebug') {
