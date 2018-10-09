@@ -25,8 +25,8 @@ task findbugs(type: FindBugs, dependsOn: 'assembleDebug') {
 	excludeFilter = file('./findbugs-exclude.xml')
 	source = fileTree('src/main/java/')
 	classes = files(
-		"${project.rootDir}/app/build/intermediates/classes",
-		"${project.rootDir}/swipeimageview/build/intermediates/classes")
+		"${project.rootDir}/app/build/intermediates/javac",
+		"${project.rootDir}/swipeimageview/build/intermediates/javac")
 	classpath = files()
 
 	effort = 'default'
