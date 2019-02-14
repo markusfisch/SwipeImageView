@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.2.1
+* Reactivate JitPack support
+
 ## 1.2.0
 * Updated to latest ScalingImageView
 
