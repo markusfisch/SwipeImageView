@@ -4,9 +4,27 @@ Swipe/zoom/pinch ImageView for Android.
 
 ## How to include
 
+### Gradle
+
+Add the JitPack repository in your root build.gradle at the end of
+repositories:
+
+	allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+
+Then add the dependency in your app/build.gradle:
+
+	dependencies {
+		compile 'com.github.markusfisch:SwipeImageView:1.2.1'
+	}
+
 ### Android Archive
 
-Just download the latest `aar` from
+Alternatively you may just download the latest `aar` from
 [Releases](https://github.com/markusfisch/SwipeImageView/releases) and put it
 into `app/libs` in your app.
 
