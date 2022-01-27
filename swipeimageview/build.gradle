@@ -10,9 +10,7 @@ buildscript {
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
-
-group = 'com.github.markusfisch'
+apply plugin: 'maven-publish'
 
 android {
 	compileSdkVersion sdk_version
@@ -27,7 +25,20 @@ android {
 }
 
 dependencies {
-	compile fileTree(dir: 'libs', include: '*')
+	api fileTree(dir: 'libs', include: '*')
 	implementation "com.android.support:appcompat-v7:$support_version"
 	implementation 'com.github.markusfisch:ScalingImageView:1.2.0'
+}
+
+afterEvaluate {
+	publishing {
+		publications {
+			release(MavenPublication) {
+				from components.release
+				groupId = 'com.github.markusfisch'
+				artifactId = 'final'
+				version = '1.2.1'
+			}
+		}
+	}
 }
